@@ -461,13 +461,9 @@ Ce dépôt documente une méthode permettant d'obtenir un flux vidéo RTSP 100% 
 
 Ce travail s'appuie sur les recherches et outils suivants :
 
-- **Guino / LSCOutdoor1080P :** Méthode d'exécution via carte SD / Approche de base du hack
-    
-- **MuhammedKalkan / Anyka-Camera-Firmware :** Documentation firmware Anyka / Application RTSP alternative
-    
-- **ricardojlrufino / anyka_v380ipcam_experiments :** Recherches firmware Anyka
-    
-- **Gerge / Anyka AK3918 hacking journey :** Documentation approfondie
+**[Guino / LSCOutdoor1080P](https://github.com/guino/LSCOutdoor1080P) : Méthode d'exécution via carte SD et approche de base pour le hack.**
+
+**[MuhammedKalkan / Anyka-Camera-Firmware](https://github.com/MuhammedKalkan/Anyka-Camera-Firmware) : Documentation du firmware Anyka et piles RTSP alternatives.**
     
 
 **Contribution originale de ce dépôt :**
