@@ -7,6 +7,13 @@
 
 ---
 
+
+
+<img src="https://github.com/user-attachments/assets/0103eac8-a083-4a93-9af8-da55f1f6acb8" width="600">
+
+
+
+
 ## **EN — Summary**
 
 Some LSC Smart Connect cameras (Anyka-based, Tuya firmware) are heavily tied to cloud services. This repository documents a method to recover a local RTSP stream (LAN).
