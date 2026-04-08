@@ -1,145 +1,158 @@
-# LSC-Anyka-RTSP-Hack
-100% Local RTSP for LSC/Anyka/Tuya cameras
+
+---
+
+LSC / Anyka / Tuya — RTSP 100% Local (No Cloud)  
+By HeartyGFX (Watson) & Holmes — April 2026
+
+**FR — Résumé**
+
+Certaines caméras LSC Smart Connect (Anyka + firmware Tuya) sont fortement liées au cloud.
+Ce dépôt documente une méthode de récupération d'un flux RTSP local (LAN).
+
+Statut :
+
+Flux RTSP principal : validé (2 caméras sur 2)
+Flux secondaire : non validé à ce stade (contributions bienvenues)
+Répétabilité : 2/2 confirmées, 3e test en cours
+Pré-requis importants :
+
+La caméra doit d'abord être configurée via LSC Connect / Smart Connect pour rejoindre le WiFi local.
+La compatibilité carte SD est très sensible (MBR requis).
 
 
-LSC Smart Connect / Anyka / Tuya : RTSP 100% Local
-No Cloud · No App · No API Key
-By HeartyGFX (Watson) & Holmes | April 2026
+**EN — Summary**
 
+Some LSC Smart Connect cameras (Anyka-based, Tuya firmware) are heavily tied to cloud services.
+This repository documents a method to recover a local RTSP stream (LAN).
+
+Status :
+
+Main RTSP stream : validated (2 cameras out of 2)
+Sub stream : not validated yet (contributions welcome)
+Repeatability : confirmed on 2 units, 3rd unit test in progress
+Important prerequisites :
+
+Camera must be initially configured with LSC Connect / Smart Connect app to join local WiFi.
+SD card compatibility is strict (MBR required).
 ⚠️ Disclaimer
-This hack is provided for educational purposes and personal use only.
-Only use this on cameras you own.
-We are not responsible for any damage caused.
+For educational and personal use only. Use only on devices you own.
+No warranty. You are responsible for what you do with this information.
 
 🙏 Credits & Prior Work
-This hack would not exist without the foundational work of :
+This work builds on prior research and tooling :
 
-Guino/LSCOutdoor1080P
-→ Original hack.sh concept
-→ SD card execution method
-→ Binary patch approach (different firmware version)
+Guino / LSCOutdoor1080P
 
-MuhammedKalkan/Anyka-Camera-Firmware
-→ Anyka firmware documentation
-→ Alternative RTSP application
+SD execution method and baseline hacking approach
+MuhammedKalkan / Anyka-Camera-Firmware
 
-ricardojlrufino/anyka_v380ipcam_experiments
-→ Anyka firmware research
+Anyka firmware documentation and alternative RTSP stacks
+ricardojlrufino / anyka_v380ipcam_experiments
 
-Gerge - Anyka AK3918 Hacking Journey
-→ Detailed hacking documentation
+Anyka firmware research
+Gerge / Anyka AK3918 hacking journey
 
-Our original contribution :
+Deep dive documentation
+Original contribution of this repo :
 
-Discovery of /tmp/_ak39_factory.ini factory trigger
-RTSP activation without binary patching
-Compatible with firmware versions that cannot be patched
+Identification of a factory-mode trigger path enabling local RTSP streaming
+Repeatable PoC on multiple devices
+Documentation of SD partition-table constraints (GPT vs MBR)
 📋 Tested Hardware
-text
-
-Brand     : LSC Smart Connect Outdoor Camera (Action stores)
-Reference : Article No. 3202092.2
-Chip      : Anyka AK3918EV330
-Firmware  : Tuya IPC SDK 4.9.18
+Field	Value
+Brand	LSC Smart Connect Outdoor Camera (Action stores)
+Reference	Article No. 3202092.2
+Chip	Anyka AK3918EV330
+Firmware	Tuya IPC SDK 4.9.18
 🔑 The Key Discovery
 The Anyka/Tuya firmware contains a dormant RTSP server.
-It is activated by creating the file /tmp/_ak39_factory.ini at runtime.
-
-This file triggers factory test mode, which starts the RTSP server on port 554.
-
-This works on firmware versions that cannot be patched (different MD5 than Guino's patch requires).
+It is activated by creating /tmp/_ak39_factory.ini at runtime.
+This triggers factory test mode and RTSP server starts on port 554.
 
 📦 Requirements
-text
+LSC Smart Connect camera (configured on app first)
+SD Card 4GB to 32GB
+Windows PC with Telnet client enabled
+VLC Media Player
+⚠️ SD Card MUST be MBR formatted
+Modern SD cards are GPT formatted by default and are rejected by the camera.
 
-- LSC Smart Connect camera (configured on LSC/Smart Connect app first)
-- SD Card (4GB to 32GB)
-- Formatted FAT32 + MBR partition table (⚠️ NOT GPT!)
-- Windows PC with Telnet client enabled
-- VLC Media Player
-⚠️ Important Prerequisites
-1. Camera must be initialized first
-The camera MUST be configured via LSC Connect or Smart Connect app first.
-This connects it to your local WiFi network.
-This hack does NOT replace this initial setup step.
+Windows commando method — open CMD as Administrator :
 
-2. SD Card MUST be MBR formatted
-Sandisk Ultra and other modern SD cards are GPT formatted by default → REJECTED by camera.
-
-Format SD card via Windows diskpart :
-
-cmd
-
+```cmd
 diskpart
 list disk
-select disk X        (replace X with your SD card number)
+select disk X
 clean
+convert mbr
 create partition primary
 format fs=fat32 quick
 active
 exit
-clean        → wipes everything including partition table
-convert mbr  → Anyka cameras HATE GPT, need MBR
-active       → marks partition as bootable
+```
 
+Command	Why
+clean	Wipes everything including partition table
+convert mbr	Anyka cameras reject GPT
+active	Marks partition as bootable
 📁 SD Card File Structure
-text
-
+```text
 SD:/
-├── hack.sh      (original from Guino repo - DO NOT MODIFY)
-└── custom.sh    (our script)
-⚠️ Both files must be UTF-8 encoded with LF line endings (not CRLF)
+├── hack.sh ← original from Guino repo (DO NOT MODIFY)
+└── custom.sh ← our script
+```
+
+Both files must be UTF-8 encoded with LF line endings (not CRLF)
 
 📄 hack.sh
 Use the original unmodified hack.sh from Guino's repo.
-
 Do not modify it.
 
 📄 custom.sh
-Bash
-
+```bash
 #!/bin/sh
 
 sleep 8
 
-# Permanent telnet via rc.local
+Permanent telnet via rc.local
 if [ ! -f /etc/config/rc.local ]; then
-    mount -o remount,rw /etc/config
-    printf '#!/bin/sh\ntelnetd -p 24 -l /bin/sh &\n' > /etc/config/rc.local
-    chmod +x /etc/config/rc.local
+mount -o remount,rw /etc/config
+printf '#!/bin/sh\ntelnetd -p 24 -l /bin/sh &\n' > /etc/config/rc.local
+chmod +x /etc/config/rc.local
 fi
 
 telnetd -p 24 -l /bin/sh &
-🚀 Procedure
-STEP 1 - Prepare SD Card
-Format SD card : FAT32 + MBR
-Copy hack.sh (original Guino) and custom.sh to SD root
-Check line endings : LF only
-STEP 2 - First Boot
-Insert SD card into powered-off camera
-Power on camera
-Wait 60 seconds
-STEP 3 - Enable Windows Telnet Client
-text
+```
 
+🚀 Step by Step Procedure
+STEP 1 — Prepare SD Card
+Format SD : FAT32 + MBR (see above)
+Copy hack.sh and custom.sh to SD root
+Check line endings : LF only
+STEP 2 — First Boot
+Insert SD into powered-off camera
+Power on
+Wait 60 seconds
+STEP 3 — Enable Windows Telnet
+```text
 Control Panel → Programs
 → Turn Windows features on or off
 → Check "Telnet Client"
-→ OK
-STEP 4 - Connect via Telnet
-cmd
+```
 
+STEP 4 — Connect via Telnet
+```cmd
 telnet 192.168.1.100 24
-(replace 192.168.1.100 with your camera's IP)
+```
 
-You should get a direct root shell :
+You get a direct root shell :
 
-text
-
+```text
 ~ #
-STEP 5 - Activate RTSP (Factory Trigger)
-Bash
+```
 
+STEP 5 — Activate RTSP
+```bash
 cat > /tmp/_ak39_factory.ini << 'EOF'
 [config]
 rtsp_enable = 1
@@ -156,59 +169,59 @@ sub_stream = 1
 EOF
 
 killall anyka_ipc
-⚠️ The camera will speak and reboot. This is completely normal.
+```
 
-STEP 6 - Reconnect After Reboot
+⚠️ Camera will speak and reboot. Normal.
+
+STEP 6 — Reconnect After Reboot
 Wait 90 seconds then reconnect :
 
-cmd
-
+```cmd
 telnet 192.168.1.100 24
-Verify RTSP is active :
+```
 
-Bash
+Verify :
 
+```bash
 netstat -tuln | grep 554
-Should show :
+```
 
-text
+Expected :
 
-tcp        0      0 0.0.0.0:554             0.0.0.0:*               LISTEN
-STEP 7 - View Stream in VLC
-text
+```text
+tcp 0.0.0.0:554 LISTEN
+```
 
+STEP 7 — View in VLC
+```text
 Media → Open Network Stream
-text
-
 rtsp://192.168.1.100:554/main_ch
-🎉 Live local video stream - no cloud!
+```
+
+🎉 Live local video — no cloud!
 
 📡 RTSP URLs
-text
-
-Main stream (HD) : rtsp://[CAM_IP]:554/main_ch   ✅ Validated
-Sub  stream (SD) : rtsp://[CAM_IP]:554/sub_ch    ❓ Not validated yet
+Stream	URL	Status
+Main (HD)	rtsp://CAM_IP:554/main_ch	✅ Validated
+Sub (SD)	rtsp://CAM_IP:554/sub_ch	❓ Not validated yet
 🔄 Automatic RTSP on Every Boot
-For fully automatic RTSP without manual intervention, use this custom.sh :
-
-Bash
-
+```bash
 #!/bin/sh
 
 sleep 8
 
-# Permanent telnet
+Permanent telnet
 if [ ! -f /etc/config/rc.local ]; then
-    mount -o remount,rw /etc/config
-    printf '#!/bin/sh\ntelnetd -p 24 -l /bin/sh &\n' > /etc/config/rc.local
-    chmod +x /etc/config/rc.local
+mount -o remount,rw /etc/config
+printf '#!/bin/sh\ntelnetd -p 24 -l /bin/sh &\n' > /etc/config/rc.local
+chmod +x /etc/config/rc.local
 fi
 
 telnetd -p 24 -l /bin/sh &
 
-# RTSP factory trigger (once per boot)
+RTSP factory trigger once per boot
 if [ ! -f /tmp/_ak39_factory_done ]; then
-    cat > /tmp/_ak39_factory.ini << 'EOF'
+cat > /tmp/_ak39_factory.ini << 'EOF'
 [config]
 rtsp_enable = 1
 rtsp_port = 554
@@ -222,70 +235,259 @@ enable = 1
 main_stream = 1
 sub_stream = 1
 EOF
-    touch /tmp/_ak39_factory_done
-    sleep 3
-    killall anyka_ipc
+touch /tmp/_ak39_factory_done
+sleep 3
+killall anyka_ipc
 fi
-⚠️ Note : /tmp/ is cleared on reboot.
-This means the camera will reboot once on every power cycle to activate RTSP.
-After that reboot, RTSP is active until next power cycle.
+```
+
+⚠️ /tmp/ is cleared on reboot. Camera reboots once per power cycle to activate RTSP.
 
 🔍 Technical Details
-What we found inside the firmware
-text
-
-Binary        : /usr/bin/anyka_ipc
-RTSP symbols  : ht_rtsp_start, ht_rtsp_stop
-               ht_rtsp_send_video_frame
-               ht_rtsp_send_audio_frame
-RTSP library  : librtsp (compiled in)
-Factory file  : /tmp/_ak39_factory.ini (trigger)
-RTSP port     : 554
-Memory layout
-text
-
-MemTotal  : ~32MB (very constrained)
-/usr      : squashfs (read-only)
-/etc/config : jffs2 (read-write, persistent)
-/tmp      : tmpfs (read-write, lost on reboot)
+Firmware internals
+Element	Value
+Binary	/usr/bin/anyka_ipc
+RTSP trigger	/tmp/_ak39_factory.ini
+RTSP port	554
+Key symbols	ht_rtsp_start, ht_rtsp_stop
+Storage layout
+Mount	Type	Access
+/usr	squashfs	Read-only
+/etc/config	jffs2	Persistent read-write
+/tmp	tmpfs	Lost on reboot
 Why Guino's patch doesn't work here
-text
-
-Expected MD5 : 5ac1f462bf039ec3c6c0a31d27ae652a (v2.10.36)
-Actual MD5   : 36849ada9f7fc1e6ea27a986cfbee8d0 (older version)
-The binary version is different → patch rejected.
+Value
+Expected MD5	5ac1f462bf039ec3c6c0a31d27ae652a (v2.10.36)
+Actual MD5	36849ada9f7fc1e6ea27a986cfbee8d0 (older)
 Our method bypasses this completely.
 
 ✅ Compatible Software
-text
-
-VLC Media Player    ✅
-Frigate (NVR)       ✅
-Home Assistant      ✅ (Generic Camera integration)
-Blue Iris           ✅
-Shinobi             ✅
-FFmpeg              ✅
+VLC Media Player
+Frigate (NVR)
+Home Assistant (Generic Camera)
+Blue Iris
+Shinobi
+FFmpeg
 ⚠️ Known Limitations
-text
-
-- SD card required for persistence
-- One reboot per power cycle to activate RTSP
-- Factory mode may disable some Tuya cloud features
-- Tested on LSC Article No. 3202092.2 only
-- Other LSC/Anyka variants : untested (feedback welcome)
+SD card required for persistence
+One reboot per power cycle to activate RTSP
+Factory mode may disable some Tuya cloud features
+Tested on LSC Article No. 3202092.2 only
+Other LSC/Anyka variants : untested (feedback welcome)
 🤝 Contributing
-Tested on a different camera variant ?
+Tested on a different variant ?
 Found the sub_ch URL ?
-Found a way to make RTSP permanent without SD ?
-
-Open an issue or submit a PR !
+Found permanent RTSP without SD ?
+Open an issue or submit a PR!
 
 📜 License
-MIT License - Free to use, share, modify.
+MIT — Free to use, share, modify.
 
 If this helped you → ⭐ Star the repo
 
 "Vise la lune, même si tu ne l'atteins pas, tu finiras parmi les étoiles"
-La Philosophie de l'Oiseau 🐦
+🐦 La Philosophie de l'Oiseau
+
+HeartyGFX (Watson) & Holmes | 2026 🔍
+
+
+****
+****
+****
+****
+
+
+Version Française:
+
+LSC / Anyka / Tuya — RTSP 100% Local (Sans Cloud)
+Par HeartyGFX (Watson) et Holmes — Avril 2026
+
+Résumé
+Certaines caméras LSC Smart Connect basées sur une puce Anyka et un firmware Tuya sont entièrement verrouillées sur le cloud. Ce dépôt documente une méthode permettant d'obtenir un flux vidéo RTSP 100% local, sans cloud, sans application officielle, sans clé API.
+
+Statut actuel :
+
+Flux principal RTSP : validé sur 2 caméras sur 2
+Flux secondaire : non validé à ce stade, contributions bienvenues
+Répétabilité : 2 sur 2 confirmées, 3e test en cours
+Prérequis importants
+La caméra doit obligatoirement être configurée une première fois via l'application LSC Connect ou Smart Connect afin de rejoindre le réseau WiFi local. Ce hack ne remplace pas cette étape initiale.
+
+Avertissement
+Ce hack est fourni à des fins éducatives et pour usage personnel uniquement. Utilisez-le uniquement sur des appareils qui vous appartiennent. Aucune garantie. Vous êtes responsable de l'usage que vous en faites.
+
+Crédits et travaux antérieurs
+Ce travail s'appuie sur les recherches et outils suivants :
+
+Guino / LSCOutdoor1080P
+
+Méthode d'exécution via carte SD
+Approche de base du hack
+MuhammedKalkan / Anyka-Camera-Firmware
+
+Documentation firmware Anyka
+Application RTSP alternative
+ricardojlrufino / anyka_v380ipcam_experiments
+
+Recherches firmware Anyka
+Gerge / Anyka AK3918 hacking journey
+
+Documentation approfondie
+Contribution originale de ce dépôt :
+
+Découverte du fichier déclencheur /tmp/_ak39_factory.ini activant le mode usine et le serveur RTSP dormant
+Méthode sans patch binaire, compatible avec les versions de firmware non patchables
+Documentation des contraintes de compatibilité carte SD (MBR vs GPT)
+Matériel testé
+Champ	Valeur
+Marque	LSC Smart Connect Outdoor Camera (Action)
+Référence	Article No. 3202092.2
+Puce	Anyka AK3918EV330
+Firmware	Tuya IPC SDK 4.9.18
+La découverte clé
+Le firmware Anyka/Tuya contient un serveur RTSP dormant compilé dans le binaire principal. Il est activé par la création du fichier /tmp/_ak39_factory.ini au moment de l'exécution. Ce fichier déclenche le mode test usine, ce qui démarre le serveur RTSP sur le port 554.
+
+Prérequis
+Caméra LSC Smart Connect configurée via l'application officielle (WiFi rejoint)
+Carte SD de 4 Go à 32 Go
+PC Windows avec client Telnet activé
+VLC Media Player
+Compatibilité carte SD — Point critique
+Les cartes SD modernes sont formatées en GPT par défaut et sont rejetées par la caméra. Il faut impérativement une table de partition MBR.
+
+Méthode Windows via diskpart — ouvrir CMD en Administrateur :
+
+Taper diskpart puis Entrée
+
+Taper list disk et repérer le numéro de votre carte SD
+
+ATTENTION : ne pas se tromper de disque
+
+Taper select disk X en remplaçant X par le numéro de la SD
+
+Taper clean
+
+Taper convert mbr
+
+Taper create partition primary
+
+Taper format fs=fat32 quick
+
+Taper active
+
+Taper exit
+
+Explication des commandes :
+
+clean efface tout, y compris la table de partition
+convert mbr est l'étape cruciale, Anyka rejette le GPT
+active marque la partition comme démarrable
+Structure de la carte SD
+Copier à la racine de la SD :
+
+hack.sh — original du dépôt Guino, ne pas modifier
+custom.sh — notre script
+Les deux fichiers doivent être encodés en UTF-8 avec des fins de ligne LF et non CRLF.
+
+hack.sh
+Utiliser le fichier hack.sh original et non modifié issu du dépôt de Guino. Ne pas le modifier.
+
+custom.sh
+Voir le fichier custom.sh dans ce dépôt.
+
+Procédure étape par étape
+Étape 1 — Préparer la carte SD
+Formater en FAT32 avec table MBR
+Copier hack.sh et custom.sh à la racine
+Vérifier les fins de ligne : LF uniquement
+Étape 2 — Premier démarrage
+Insérer la SD dans la caméra éteinte
+Allumer la caméra
+Attendre 60 secondes
+Étape 3 — Activer le client Telnet Windows
+Panneau de configuration, puis Programmes, puis Activer ou désactiver des fonctionnalités Windows, puis cocher Client Telnet.
+
+Étape 4 — Connexion Telnet
+Depuis CMD Windows :
+
+```text
+telnet 192.168.1.100 24
+```
+
+Remplacer 192.168.1.100 par l'IP de votre caméra. Vous obtenez un shell root direct.
+
+Étape 5 — Activer le RTSP
+Depuis le shell Telnet, créer le fichier déclencheur et redémarrer le processus principal. Voir le fichier PROCEDURE.md dans ce dépôt pour les commandes détaillées.
+
+La caméra va parler et redémarrer. C'est normal.
+
+Étape 6 — Reconnexion après reboot
+Attendre 90 secondes puis se reconnecter :
+
+```text
+telnet 192.168.1.100 24
+```
+
+Vérifier que le port 554 est actif :
+
+```text
+netstat -tuln
+```
+
+Étape 7 — Flux vidéo dans VLC
+Media, puis Ouvrir un flux réseau, puis entrer :
+
+```text
+rtsp://192.168.1.100:554/main_ch
+```
+
+Flux vidéo local en direct, sans cloud.
+
+URLs RTSP
+Flux	URL	Statut
+Principal HD	rtsp://IP_CAM:554/main_ch	Validé
+Secondaire SD	rtsp://IP_CAM:554/sub_ch	Non validé
+Détails techniques
+Élément	Valeur
+Binaire principal	/usr/bin/anyka_ipc
+Fichier déclencheur	/tmp/_ak39_factory.ini
+Port RTSP	554
+Symboles clés	ht_rtsp_start, ht_rtsp_stop
+Point de montage	Type	Accès
+/usr	squashfs	Lecture seule
+/etc/config	jffs2	Lecture-écriture persistant
+/tmp	tmpfs	Perdu au reboot
+Pourquoi le patch de Guino ne fonctionne pas ici
+Valeur
+MD5 attendu	5ac1f462bf039ec3c6c0a31d27ae652a version 2.10.36
+MD5 réel	36849ada9f7fc1e6ea27a986cfbee8d0 version antérieure
+Notre méthode contourne complètement ce problème.
+
+Logiciels compatibles
+VLC Media Player
+Frigate (NVR)
+Home Assistant via intégration Generic Camera
+Blue Iris
+Shinobi
+FFmpeg
+Limitations connues
+Carte SD requise pour la persistance
+Un reboot par cycle d'alimentation pour activer le RTSP
+Le mode usine peut désactiver certaines fonctions Tuya cloud
+Testé uniquement sur LSC Article No. 3202092.2
+Autres variantes LSC/Anyka : non testées, contributions bienvenues
+Contribuer
+Testé sur une autre variante ?
+Trouvé l'URL sub_ch ?
+Trouvé comment rendre le RTSP permanent sans SD ?
+Ouvrir une Issue ou soumettre une PR.
+
+Licence
+MIT — Libre d'utilisation, de partage et de modification.
+
+Si cela vous a aidé, mettez une étoile au dépôt.
+
+Vise la lune, même si tu ne l'atteins pas, tu finiras parmi les étoiles.
+La Philosophie de l'Oiseau.
 
 HeartyGFX (Watson) & Holmes | 2026 🔍
