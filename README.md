@@ -294,10 +294,14 @@ tcp 0.0.0.0:554 LISTEN
 
 ---
 
+<br>
+<br>
 
-**IF it doesn't work,** try running the following lines manually via **telnet connection**:
 
-**Step 1:** Create the configuration file
+## IF it doesn't work, 
+try running the following lines manually via **telnet connection**:
+
+**A:** type this
 
 Bash
 
@@ -310,7 +314,7 @@ factory_mode = 1
 EOF
 ```
 
-**Step 2:** Verify the file content
+**B:** Verify the file content
 
 Bash
 
@@ -318,7 +322,7 @@ Bash
 cat /tmp/_ak39_factory.ini
 ```
 
-**Step 3:** Restart the IPC process
+**C:** Restart the IPC process
 
 Bash
 
@@ -326,7 +330,7 @@ Bash
 killall anyka_ipc
 ```
 
-**Step 4:** Check the network ports The camera will reboot (you will hear a voice prompt). Wait a few seconds, go back to your telnet session, and type:
+**D:** Check the network ports The camera will reboot (you will hear a voice prompt). Wait a few seconds, go back to your telnet session, and type:
 
 Bash
 
@@ -348,7 +352,8 @@ tcp        0      0 0.0.0.0:554             0.0.0.0:* LISTEN
 **You won!** Now, check the main HD stream with VLC... 👌
 
 
-
+<br>
+<br>
 ---
 
 ### 🔄 Automatic RTSP on Every Boot
