@@ -29,9 +29,9 @@ Some LSC Smart Connect cameras (Anyka-based, Tuya firmware) are heavily tied to 
 
 **Important prerequisites:**
 
-- La caméra doit d'abord être configurée via LSC Connect / Smart Connect pour rejoindre le WiFi local.
+- The camera must first be configured via LSC Connect / Smart Connect to join the local WiFi.
     
-- La compatibilité carte SD est très sensible (**MBR requis**).
+- SD card compatibility is very sensitive (**MBR required**).
     
 
 ---
