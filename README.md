@@ -50,9 +50,7 @@ This work builds on prior research and tooling:
     
 - **MuhammedKalkan / Anyka-Camera-Firmware :** Anyka firmware documentation and alternative RTSP stacks
     
-- **ricardojlrufino / anyka_v380ipcam_experiments :** Anyka firmware research
-    
-- **Gerge / Anyka AK3918 hacking journey :** Deep dive documentation
+
     
 
 **Original contribution of this repo :**
