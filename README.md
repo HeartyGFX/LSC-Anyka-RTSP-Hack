@@ -76,8 +76,12 @@ select disk X        (replace X with your SD card number)
 clean
 create partition primary
 format fs=fat32 quick
-assign
+active
 exit
+clean        → wipes everything including partition table
+convert mbr  → Anyka cameras HATE GPT, need MBR
+active       → marks partition as bootable
+
 📁 SD Card File Structure
 text
 
