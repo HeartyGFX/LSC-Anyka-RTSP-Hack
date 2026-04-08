@@ -46,9 +46,10 @@ Some LSC Smart Connect cameras (Anyka-based, Tuya firmware) are heavily tied to 
 
 This work builds on prior research and tooling:
 
-- **Guino / LSCOutdoor1080P :** SD execution method and baseline hacking approach
+**[Guino / LSCOutdoor1080P](https://github.com/guino/LSCOutdoor1080P) : SD execution method and baseline hacking approach**
+
+**[MuhammedKalkan / Anyka-Camera-Firmware](https://github.com/MuhammedKalkan/Anyka-Camera-Firmware) : Anyka firmware documentation and alternative RTSP stacks**
     
-- **MuhammedKalkan / Anyka-Camera-Firmware :** Anyka firmware documentation and alternative RTSP stacks
     
 
     
